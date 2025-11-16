@@ -35,6 +35,19 @@ class Dictionary:
     def _get_index(self, h: int) -> int:
         return h & (self.capacity - 1)
 
+    def _place_node_at_new_index(self, node: DictionaryNode) -> None:
+        index = self._get_index(node.hash)
+
+        while self.hash_table[index] is not None:
+            index = (index + 1) & (self.capacity - 1)
+
+        self.hash_table[index] = node
+
+    def _add_node_internal(self, node: DictionaryNode) -> None:
+        self._place_node_at_new_index(node)
+        self.length += 1
+        self.filled_count += 1
+
     def _resize(self) -> None:
         old_table = self.hash_table
         self.capacity *= 2
@@ -44,16 +57,8 @@ class Dictionary:
 
         for node in old_table:
             if node is not None:
-                self._insert_node_internal(node)
-
-    def _insert_node_internal(self, node: DictionaryNode) -> None:
-        index = self._get_index(node.hash)
-
-        while self.hash_table[index] is not None:
-            index = (index + 1) & (self.capacity - 1)
-
-        self.hash_table[index] = node
-        self.filled_count += 1
+                self._place_node_at_new_index(node)
+                self.filled_count += 1
 
     def __setitem__(self, key: Any, value: Any) -> None:
         h = self._get_hash(key)
@@ -73,9 +78,7 @@ class Dictionary:
                 break
 
         new_node = DictionaryNode(key, h, value)
-        self.hash_table[index] = new_node
-        self.length += 1
-        self.filled_count += 1
+        self._add_node_internal(new_node)
 
         if self.filled_count >= self.threshold:
             self._resize()
@@ -117,7 +120,6 @@ class Dictionary:
                 self.hash_table[index] = None
                 self.length -= 1
                 self.filled_count -= 1
-
                 self._rehash_from_index(index)
                 return
 
@@ -126,16 +128,14 @@ class Dictionary:
             if index == start_index:
                 break
 
-        raise KeyError(f"Key '{key}' not found in the "
-                       f"dictionary for deletion.")
+        raise KeyError(f"Key '{key}' not found "
+                       f"in the dictionary for deletion.")
 
     def _rehash_from_index(self, start_index: int) -> None:
         index = (start_index + 1) & (self.capacity - 1)
 
         while self.hash_table[index] is not None:
             node_to_move = self.hash_table[index]
-
             self.hash_table[index] = None
-            self._insert_node_internal(node_to_move)
-
+            self._place_node_at_new_index(node_to_move)
             index = (index + 1) & (self.capacity - 1)
