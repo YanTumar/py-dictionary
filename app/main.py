@@ -5,9 +5,9 @@ LOAD_FACTOR = 2 / 3
 
 
 class DictionaryNode:
-    __slots__ = ('key', 'hash', 'value')
+    __slots__ = ("key", "hash", "value")
 
-    def __init__(self, key: Any, h: int, value: Any):
+    def __init__(self, key: Any, h: int, value: Any) -> None:
         self.key = key
         self.hash = h
         self.value = value
@@ -17,8 +17,8 @@ class Dictionary:
     def __init__(self) -> None:
         self.length = 0
         self.capacity = DEFAULT_CAPACITY
-        self.hash_table: List[Optional[DictionaryNode]] \
-            = [None] * self.capacity
+        self.hash_table: List[Optional[DictionaryNode]] = ([None]
+                                                           * self.capacity)
         self.filled_count = 0
         self.threshold = int(self.capacity * LOAD_FACTOR)
 
@@ -126,8 +126,8 @@ class Dictionary:
             if index == start_index:
                 break
 
-        raise KeyError(f"Key '{key}' not found in "
-                       f"the dictionary for deletion.")
+        raise KeyError(f"Key '{key}' not found in the "
+                       f"dictionary for deletion.")
 
     def _rehash_from_index(self, start_index: int) -> None:
         index = (start_index + 1) & (self.capacity - 1)
